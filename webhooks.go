@@ -117,9 +117,7 @@ func AutoTestWebhook(context *cli.Context) {
 	}
 
 	http.Handle("/", responseHandler)
-	//	http.HandleFunc("/", webhookResponseHandler)
 	http.ListenAndServe(":8080", nil)
-
 }
 
 func interruptHandler(c chan os.Signal, webhook *shopify.Webhook) {
@@ -179,11 +177,9 @@ func CreateWebhook(context *cli.Context) {
 }
 
 func ListWebhooks(context *cli.Context) {
-
 	webhooks := shopifyClient.Webhooks()
 	hooks := webhooks.List()
 	fmt.Printf("Registered webhooks: %d (you only see webhooks registered with the current credentials)\n", len(hooks))
-
 	prettyListWebhooks(hooks...)
 }
 
