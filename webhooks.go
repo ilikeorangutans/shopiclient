@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/ilikeorangutans/shopify"
@@ -14,7 +15,7 @@ import (
 	"strings"
 )
 
-const WEBHOOK_FORMAT = "%4v  %-20s  %-6s  %-s"
+const WEBHOOK_LIST_FORMAT = "%4v  %-20s  %-6s  %-s"
 
 func WebhookCommands() cli.Command {
 	return cli.Command{
@@ -55,6 +56,10 @@ func WebhookCommands() cli.Command {
 					cli.StringFlag{
 						Name: "topic",
 					},
+					cli.BoolFlag{
+						Name:  "pretty-json",
+						Usage: "Pretty print webhook JSON payload",
+					},
 				},
 			},
 		},
@@ -74,13 +79,12 @@ func WebhooksDefault(context *cli.Context) {
 }
 
 func prettyListWebhooks(hooks ...*shopify.Webhook) {
-	fmt.Printf(WEBHOOK_FORMAT, "ID", "Topic", "Format", "Address")
+	fmt.Printf(WEBHOOK_LIST_FORMAT, "ID", "Topic", "Format", "Address")
 	fmt.Println()
 	for _, webhook := range hooks {
-		fmt.Printf(WEBHOOK_FORMAT, webhook.Id, webhook.Topic, webhook.Format, webhook.Address)
+		fmt.Printf(WEBHOOK_LIST_FORMAT, webhook.Id, webhook.Topic, webhook.Format, webhook.Address)
 		fmt.Println()
 	}
-
 }
 
 func AutoTestWebhook(context *cli.Context) {
@@ -108,22 +112,29 @@ func AutoTestWebhook(context *cli.Context) {
 	signal.Notify(c, os.Interrupt)
 	go interruptHandler(c, webhook)
 
-	http.HandleFunc("/", handler)
+	responseHandler := &webhookResponseHandler{
+		prettyPrint: context.Bool("pretty-json"),
+	}
+
+	http.Handle("/", responseHandler)
+	//	http.HandleFunc("/", webhookResponseHandler)
 	http.ListenAndServe(":8080", nil)
 
 }
 
 func interruptHandler(c chan os.Signal, webhook *shopify.Webhook) {
-	for sig := range c {
-		log.Println("Caught ^C ", sig.String())
+	for _ = range c {
 		shopifyClient.Webhooks().Delete(webhook.Id)
-
 		os.Exit(0)
 	}
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	b, err := httputil.DumpRequest(r, true)
+type webhookResponseHandler struct {
+	prettyPrint bool
+}
+
+func (wrh *webhookResponseHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	b, err := httputil.DumpRequest(r, !wrh.prettyPrint)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -131,6 +142,22 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println()
 	log.Println("--< Incoming Request >---------------------------------------------------------")
 	fmt.Printf("%s", b)
+
+	if wrh.prettyPrint {
+		decoder := json.NewDecoder(r.Body)
+
+		var v interface{}
+		decoder.Decode(&v)
+
+		b, err := json.MarshalIndent(v, "", "  ")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Printf("%s", b)
+	}
+
+	fmt.Println()
 }
 
 func CreateWebhook(context *cli.Context) {
