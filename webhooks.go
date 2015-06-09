@@ -19,8 +19,9 @@ const WEBHOOK_LIST_FORMAT = "%4v  %-20s  %-6s  %-s"
 
 func WebhookCommands() cli.Command {
 	return cli.Command{
-		Name:   "webhooks",
-		Action: WebhooksDefault,
+		Name:    "webhooks",
+		Action:  WebhooksDefault,
+		Aliases: []string{"wh"},
 		Subcommands: []cli.Command{
 			cli.Command{
 				Name:   "list",
@@ -50,12 +51,9 @@ func WebhookCommands() cli.Command {
 			},
 			cli.Command{
 				Name:   "auto-test",
-				Usage:  "Automatically set up a webhook for the given topic and start a server to listen",
+				Usage:  "Automatically set up a webhook for the given topic(s) and start a server to listen",
 				Action: AutoTestWebhook,
 				Flags: []cli.Flag{
-					cli.StringFlag{
-						Name: "topic",
-					},
 					cli.BoolFlag{
 						Name:  "pretty-json",
 						Usage: "Pretty print webhook JSON payload",
@@ -88,29 +86,35 @@ func prettyListWebhooks(hooks ...*shopify.Webhook) {
 }
 
 func AutoTestWebhook(context *cli.Context) {
-
 	hostname, err := os.Hostname()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	format := "json"
-	topic := context.String("topic")
 
 	u, err := url.Parse(fmt.Sprintf("http://%s:8080", hostname))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	webhook, _ := shopifyClient.Webhooks().Create(topic, u, format)
+	webhooks := make([]*shopify.Webhook, 0)
+	for _, topic := range context.Args() {
+		webhook, err := shopifyClient.Webhooks().Create(topic, u, format)
+		if err != nil {
+			log.Fatal(err)
+		}
+		webhooks = append(webhooks, webhook)
+	}
+
 	fmt.Println("Created new webhook for automatic testing:")
-	prettyListWebhooks(webhook)
+	prettyListWebhooks(webhooks...)
 
 	log.Println("Now listening for webhooks, press ^C to exit...")
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
-	go interruptHandler(c, webhook)
+	go interruptHandler(c, webhooks)
 
 	responseHandler := &webhookResponseHandler{
 		prettyPrint: context.Bool("pretty-json"),
@@ -120,9 +124,11 @@ func AutoTestWebhook(context *cli.Context) {
 	http.ListenAndServe(":8080", nil)
 }
 
-func interruptHandler(c chan os.Signal, webhook *shopify.Webhook) {
+func interruptHandler(c chan os.Signal, webhooks []*shopify.Webhook) {
 	for _ = range c {
-		shopifyClient.Webhooks().Delete(webhook.Id)
+		for _, webhook := range webhooks {
+			shopifyClient.Webhooks().Delete(webhook.Id)
+		}
 		os.Exit(0)
 	}
 }

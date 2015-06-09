@@ -10,6 +10,7 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "shopiclient"
 	app.Usage = "Shopify CLI API client"
+	app.Author = "Jakob Külzer (jakob.kulzer@shopify.com)"
 	app.Before = SetupClient
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{
@@ -32,6 +33,10 @@ func main() {
 	app.Commands = []cli.Command{
 		ChannelCommands(),
 		WebhookCommands(),
+		MetafieldsCommands(),
+		FulfillmentServicesCommand(),
+		ProductPublicationsCommands(),
+		OrdersCommands(),
 	}
 
 	app.Run(os.Args)
