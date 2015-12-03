@@ -36,6 +36,7 @@ func main() {
 		FulfillmentServicesCommand(),
 		OrdersCommands(),
 		ThemeCommands(),
+		AssetCommands(),
 	}
 
 	app.Run(os.Args)
