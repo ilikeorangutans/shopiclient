@@ -113,7 +113,11 @@ func (c *Client) Themes() *Themes {
 }
 
 func (c *Client) Assets(theme *Theme) *Assets {
-	return AssetsForTheme(theme)
+	return &Assets{
+		buildURL:        c.buildURL,
+		requestAndParse: c.requestAndParseJSON,
+		Theme:           theme,
+	}
 }
 
 func (c *Client) debug(msg string) {

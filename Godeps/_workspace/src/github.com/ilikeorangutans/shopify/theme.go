@@ -52,10 +52,6 @@ func (t *Theme) String() string {
 	return fmt.Sprintf("Theme{id: %d, name: %s, role: %s, theme_store_id: %d, processing: %t, previewable: %t}", t.ID, t.Name, t.Role, t.ThemeStoreID, t.Processing, t.Previewable)
 }
 
-func (t *Theme) Assets() *Assets {
-	return &Assets{}
-}
-
 func decodeThemesList(body []byte) (interface{}, error) {
 	var themes []*Theme
 	if err := json.Unmarshal(body, &themes); err != nil {

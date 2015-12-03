@@ -3,22 +3,27 @@ package shopify
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 )
 
-func AssetsForTheme(t *Theme) *Assets {
-	return &Assets{}
-}
-
 type Assets struct {
-	buildURL URLBuilder
-	request  Requester
-	Theme    Theme
+	buildURL        URLBuilder
+	requestAndParse RequestAndParse
+	Theme           *Theme
 }
 
 // List downloads metadata for all assets associated with the Theme set on the instance.
 func (a *Assets) List() ([]*Asset, error) {
-	a.buildURL(a.themeBaseURL(), "assets.json")
-	return nil, nil
+
+	req, err := http.NewRequest("GET", a.buildURL(a.themeBaseURL(), "assets.json"), nil)
+	if err != nil {
+		return nil, err
+	}
+	assets, err := a.requestAndParse(req, "assets", decodeAssetsList)
+	if err != nil {
+		return nil, err
+	}
+	return assets.([]*Asset), nil
 }
 
 func (a *Assets) themeBaseURL() string {
@@ -26,7 +31,7 @@ func (a *Assets) themeBaseURL() string {
 }
 
 type Asset struct {
-	CommonFields
+	Timestamps
 
 	Key                string          `json:"key"`
 	ContentType        string          `json:"content_type"`
@@ -39,7 +44,11 @@ type Asset struct {
 	metadataOnly       bool            `json:"-"`
 }
 
-func decodeAssetsList(body []byte) ([]*Asset, error) {
+func (a *Asset) String() string {
+	return fmt.Sprintf("Asset{key: %s, content_type: %s, size: %d}", a.Key, a.ContentType, a.Size)
+}
+
+func decodeAssetsList(body []byte) (interface{}, error) {
 	var assets []*Asset
 	err := json.Unmarshal(body, &assets)
 	if err != nil {

@@ -4,12 +4,12 @@
 	"Deps": [
 		{
 			"ImportPath": "github.com/codegangsta/cli",
-			"Comment": "1.2.0-98-g30b361b",
-			"Rev": "30b361bf66a60174a9589458afbf494478bafd00"
+			"Comment": "1.2.0-179-g0302d39",
+			"Rev": "0302d3914d2a6ad61404584cdae6e6dbc9c03599"
 		},
 		{
 			"ImportPath": "github.com/ilikeorangutans/shopify",
-			"Rev": "55316f850cd8b9c2b7dd3606a78aa12b2aeb502e"
+			"Rev": "5f3197076ca9e83780bfd64267b50e6b6774cc20"
 		}
 	]
 }

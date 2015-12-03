@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/codegangsta/cli"
 	"log"
+	"os"
+	"text/tabwriter"
 )
 
 func ThemeCommands() cli.Command {
@@ -28,10 +30,13 @@ func ListThemes(context *cli.Context) {
 		log.Fatal(err)
 	}
 
+	writer := tabwriter.NewWriter(os.Stdout, 0, 8, 2, ' ', 0)
+
+	writer.Write([]byte(fmt.Sprintf("%s\t%s\t%s\t%s\t%s\t%s\n", "ID", "Name", "Role", "Theme Store ID", "Processing", "Previewable")))
 	for i := range themesList {
 		theme := themesList[i]
-		fmt.Printf("%v\n", theme)
-
+		writer.Write([]byte(fmt.Sprintf("%d\t%s\t%s\t%d\t%t\t%t\n", theme.ID, theme.Name, theme.Role, theme.ThemeStoreID, theme.Processing, theme.Previewable)))
 	}
 
+	writer.Flush()
 }
