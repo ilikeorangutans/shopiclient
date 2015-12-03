@@ -1,0 +1,10 @@
+{
+	"ImportPath": "github.com/ilikeorangutans/shopify",
+	"GoVersion": "go1.5.1",
+	"Deps": [
+		{
+			"ImportPath": "github.com/stretchr/testify/assert",
+			"Rev": "b641a3539ba5b6e1470224e8dbccd383936519b4"
+		}
+	]
+}

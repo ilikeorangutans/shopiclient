@@ -39,7 +39,7 @@ func ListOrderTransactions(c *cli.Context) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("Listing transactions for order #%d (%d)\n", order.Number, order.Id)
+	fmt.Printf("Listing transactions for order #%d (%d)\n", order.Number, order.ID)
 
 	transactions := shopifyClient.Transactions().List(order)
 
@@ -47,7 +47,7 @@ func ListOrderTransactions(c *cli.Context) {
 	w.Init(os.Stdout, 5, 4, 2, ' ', 0)
 	fmt.Fprintf(w, "ID\tAmount\tCurrency\tStatus\tTest\n")
 	for _, transaction := range transactions {
-		fmt.Fprintf(w, "%d\t%.2f\t%s\t%s\t%v\n", transaction.Id, transaction.Amount, transaction.Currency, transaction.Status, transaction.Test)
+		fmt.Fprintf(w, "%d\t%.2f\t%s\t%s\t%v\n", transaction.ID, transaction.Amount, transaction.Currency, transaction.Status, transaction.Test)
 	}
 	w.Flush()
 }
@@ -58,6 +58,6 @@ func ListOrders(c *cli.Context) {
 	fmt.Printf("Listing orders (%d): \n", len(orders))
 
 	for _, o := range orders {
-		fmt.Printf("%-4d %-4d %6s\n", o.Id, o.Number, o.Name)
+		fmt.Printf("%-4d %-4d %6s\n", o.ID, o.Number, o.Name)
 	}
 }

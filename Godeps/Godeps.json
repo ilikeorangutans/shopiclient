@@ -1,0 +1,15 @@
+{
+	"ImportPath": "github.com/ilikeorangutans/shopiclient",
+	"GoVersion": "go1.5.1",
+	"Deps": [
+		{
+			"ImportPath": "github.com/codegangsta/cli",
+			"Comment": "1.2.0-98-g30b361b",
+			"Rev": "30b361bf66a60174a9589458afbf494478bafd00"
+		},
+		{
+			"ImportPath": "github.com/ilikeorangutans/shopify",
+			"Rev": "55316f850cd8b9c2b7dd3606a78aa12b2aeb502e"
+		}
+	]
+}

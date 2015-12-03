@@ -39,7 +39,7 @@ func listFullfillments(c *cli.Context) {
 	fmt.Println("Fulfillment services:", len(services))
 	fmt.Printf("%-4s  %-12s  %s\n", "ID", "Name", "Handle")
 	for _, s := range services {
-		fmt.Printf("%-4d  %-12s  %s  %s  %s  %s\n", s.Id, s.Name, s.Handle, s.CallbackURL, s.Format, s.ProviderId)
+		fmt.Printf("%-4d  %-12s  %s  %s  %s  %s\n", s.ID, s.Name, s.Handle, s.CallbackURL, s.Format, s.ProviderID)
 	}
 
 }

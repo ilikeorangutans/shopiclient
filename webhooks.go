@@ -66,7 +66,7 @@ func WebhookCommands() cli.Command {
 
 func WebhooksDefault(context *cli.Context) {
 	if len(context.Args()) > 0 {
-		id, err := strconv.Atoi(context.Args()[0])
+		id, err := strconv.ParseInt(context.Args()[0], 10, 64)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -80,7 +80,7 @@ func prettyListWebhooks(hooks ...*shopify.Webhook) {
 	fmt.Printf(WEBHOOK_LIST_FORMAT, "ID", "Topic", "Format", "Address")
 	fmt.Println()
 	for _, webhook := range hooks {
-		fmt.Printf(WEBHOOK_LIST_FORMAT, webhook.Id, webhook.Topic, webhook.Format, webhook.Address)
+		fmt.Printf(WEBHOOK_LIST_FORMAT, webhook.ID, webhook.Topic, webhook.Format, webhook.Address)
 		fmt.Println()
 	}
 }
@@ -127,7 +127,7 @@ func AutoTestWebhook(context *cli.Context) {
 func interruptHandler(c chan os.Signal, webhooks []*shopify.Webhook) {
 	for _ = range c {
 		for _, webhook := range webhooks {
-			shopifyClient.Webhooks().Delete(webhook.Id)
+			shopifyClient.Webhooks().Delete(webhook.ID)
 		}
 		os.Exit(0)
 	}
@@ -192,7 +192,7 @@ func ListWebhooks(context *cli.Context) {
 func DeleteWebhook(context *cli.Context) {
 	webhooks := shopifyClient.Webhooks()
 
-	id, err := strconv.Atoi(context.Args()[0])
+	id, err := strconv.ParseInt(context.Args()[0], 10, 64)
 	if err != nil {
 		log.Fatal(err)
 	}

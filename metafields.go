@@ -56,6 +56,6 @@ func ListMetafields(c *cli.Context) {
 		if len(value) > 20 {
 			value = strings.Trim(value[0:17], " ") + "..."
 		}
-		fmt.Printf(format, metafield.Id, metafield.Namespace, metafield.Key, metafield.Type, value, metafield.ResourceId, metafield.Resource)
+		fmt.Printf(format, metafield.ID, metafield.Namespace, metafield.Key, metafield.Type, value, metafield.ResourceID, metafield.Resource)
 	}
 }

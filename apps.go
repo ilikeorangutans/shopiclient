@@ -9,6 +9,6 @@ func foo(context *cli.Context) {
 	aps := shopifyClient.Apps().List()
 
 	for _, ap := range aps {
-		fmt.Printf("%d \n", ap.Id)
+		fmt.Printf("%d \n", ap.ID)
 	}
 }

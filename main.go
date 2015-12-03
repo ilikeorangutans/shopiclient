@@ -31,12 +31,11 @@ func main() {
 		},
 	}
 	app.Commands = []cli.Command{
-		ChannelCommands(),
 		WebhookCommands(),
 		MetafieldsCommands(),
 		FulfillmentServicesCommand(),
-		ProductPublicationsCommands(),
 		OrdersCommands(),
+		ThemeCommands(),
 	}
 
 	app.Run(os.Args)
@@ -45,7 +44,7 @@ func main() {
 var shopifyClient *shopify.Client
 
 func SetupClient(context *cli.Context) error {
-	shopifyClient = shopify.Connect(context.String("host"), context.String("user"), context.String("password"))
+	shopifyClient = shopify.NewClient(context.String("host"), context.String("user"), context.String("password"))
 	shopifyClient.Verbose = context.IsSet("verbose")
 	return nil
 }
