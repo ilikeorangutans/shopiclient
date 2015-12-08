@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/ilikeorangutans/shopify"
+	"log"
 )
 
 func FulfillmentServicesCommand() cli.Command {
@@ -34,7 +35,10 @@ func FulfillmentServicesCommand() cli.Command {
 func listFullfillments(c *cli.Context) {
 
 	ffs := shopifyClient.FullfillmentServices()
-	services := ffs.List()
+	services, err := ffs.List()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	fmt.Println("Fulfillment services:", len(services))
 	fmt.Printf("%-4s  %-12s  %s\n", "ID", "Name", "Handle")
@@ -46,9 +50,12 @@ func listFullfillments(c *cli.Context) {
 
 func createFulfillmentService(c *cli.Context) {
 	ffs := shopifyClient.FullfillmentServices()
-	services := ffs.List()
+	services, err := ffs.List()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	ffs.Create(&shopify.FulfillmentService{
+	_, err = ffs.Create(&shopify.FulfillmentService{
 		Name: c.String("name"),
 		//		CallbackURL: "http://localhost:12345/",
 		Handle:      "KABAM",
@@ -56,8 +63,14 @@ func createFulfillmentService(c *cli.Context) {
 		Format:      "json",
 		Credential1: "credential",
 	})
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	services = ffs.List()
+	services, err = ffs.List()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	for _, s := range services {
 		fmt.Println(s)

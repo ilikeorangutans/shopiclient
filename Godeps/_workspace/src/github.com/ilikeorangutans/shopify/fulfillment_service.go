@@ -9,8 +9,7 @@ import (
 )
 
 type FulfillmentServices struct {
-	requester  Requester
-	urlBuilder URLBuilder
+	RemoteJSONResource
 }
 
 type FulfillmentService struct {
@@ -32,20 +31,19 @@ type FulfillmentServiceWithID struct {
 	ID int `json:"id"`
 }
 
-func (ffs *FulfillmentServices) List() []*FulfillmentServiceWithID {
-	req, err := http.NewRequest("GET", ffs.urlBuilder("/admin", "fulfillment_services.json?scope=all"), nil)
+func (ffs *FulfillmentServices) List() ([]*FulfillmentServiceWithID, error) {
+	req, err := http.NewRequest("GET", ffs.BuildURL("fulfillment_services?scope=all"), nil)
 	req.Header.Set("Content-Type", "application/json")
 
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	resp, err := ffs.requester(req)
-	if err != nil {
-		log.Fatal(err)
+	var services []*FulfillmentServiceWithID
+	if err = ffs.RequestAndDecode(req, "fulfillment_services", &services); err != nil {
+		return nil, err
 	}
-
-	return decodeServicesJSON(resp["fulfillment_services"])
+	return services, nil
 }
 
 func decodeServicesJSON(data []byte) []*FulfillmentServiceWithID {
@@ -68,14 +66,14 @@ func (ffs *FulfillmentServices) Create(service *FulfillmentService) (*Fulfillmen
 
 	payload := fmt.Sprintf("%s", b)
 
-	req, err := http.NewRequest("POST", ffs.urlBuilder("/admin", "fulfillment_services.json"), strings.NewReader(payload))
+	req, err := http.NewRequest("POST", ffs.BuildURL("fulfillment_services"), strings.NewReader(payload))
 	req.Header.Set("Content-Type", "application/json")
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	resp, err := ffs.requester(req)
+	resp, err := ffs.Request(req)
 	if err != nil {
 		log.Fatal(err)
 	}

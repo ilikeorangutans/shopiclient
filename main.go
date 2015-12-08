@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/codegangsta/cli"
 	"github.com/ilikeorangutans/shopify"
+	"log"
 	"os"
 )
 
@@ -32,6 +33,7 @@ func main() {
 	}
 	app.Commands = []cli.Command{
 		WebhookCommands(),
+		ProductCommands(),
 		MetafieldsCommands(),
 		FulfillmentServicesCommand(),
 		OrdersCommands(),
@@ -46,6 +48,10 @@ var shopifyClient *shopify.Client
 
 func SetupClient(context *cli.Context) error {
 	shopifyClient = shopify.NewClient(context.String("host"), context.String("user"), context.String("password"))
+	err := shopifyClient.Connect()
+	if err != nil {
+		log.Fatal(err)
+	}
 	shopifyClient.Verbose = context.IsSet("verbose")
 	return nil
 }

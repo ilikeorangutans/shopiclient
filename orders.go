@@ -41,7 +41,10 @@ func ListOrderTransactions(c *cli.Context) {
 	}
 	fmt.Printf("Listing transactions for order #%d (%d)\n", order.Number, order.ID)
 
-	transactions := shopifyClient.Transactions().List(order)
+	transactions, err := shopifyClient.Transactions().List(order)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 5, 4, 2, ' ', 0)
@@ -53,7 +56,10 @@ func ListOrderTransactions(c *cli.Context) {
 }
 
 func ListOrders(c *cli.Context) {
-	orders := shopifyClient.Orders().List()
+	orders, err := shopifyClient.Orders().List()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	fmt.Printf("Listing orders (%d): \n", len(orders))
 

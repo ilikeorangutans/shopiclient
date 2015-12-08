@@ -1,8 +1,6 @@
 package shopify
 
 import (
-	"encoding/json"
-	"log"
 	"net/http"
 )
 
@@ -11,23 +9,19 @@ type APIPermission struct {
 }
 
 type APIPermissions struct {
-	requester  Requester
-	urlBuilder URLBuilder
+	RemoteJSONResource
 }
 
-func (ap *APIPermissions) List() []*APIPermission {
-	req, err := http.NewRequest("GET", ap.urlBuilder("/admin/apps.json"), nil)
+func (ap *APIPermissions) List() ([]*APIPermission, error) {
+	req, err := http.NewRequest("GET", ap.BuildURL("apps"), nil)
 	if err != nil {
-		log.Fatal(err)
-	}
-
-	d, err := ap.requester(req)
-	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	var permissions []*APIPermission
-	json.Unmarshal(d["api_permissions"], &permissions)
+	if err = ap.RequestAndDecode(req, "api_permissions", &permissions); err != nil {
+		return nil, err
+	}
 
-	return permissions
+	return permissions, nil
 }

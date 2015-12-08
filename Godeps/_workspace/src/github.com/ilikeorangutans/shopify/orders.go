@@ -1,7 +1,6 @@
 package shopify
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -14,41 +13,35 @@ type Order struct {
 }
 
 type Orders struct {
-	requester  Requester
-	urlBuilder URLBuilder
+	RemoteJSONResource
 }
 
 func (o *Orders) Get(id int) (*Order, error) {
-	req, err := http.NewRequest("GET", o.urlBuilder(fmt.Sprintf("/admin/orders/%d.json", id)), nil)
+	req, err := http.NewRequest("GET", o.BuildURL(fmt.Sprintf("orders/%d", id)), nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	resp, err := o.requester(req)
+	var order *Order
+	err = o.RequestAndDecode(req, "order", &order)
 	if err != nil {
 		return nil, err
 	}
-	var order *Order
-	json.Unmarshal(resp["order"], &order)
 	return order, nil
 }
 
-func (o *Orders) List() []*Order {
-	req, err := http.NewRequest("GET", o.urlBuilder("/admin/orders.json"), nil)
+func (o *Orders) List() ([]*Order, error) {
+	req, err := http.NewRequest("GET", o.BuildURL("orders"), nil)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	resp, err := o.requester(req)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return decodeOrdersList(resp["orders"])
-}
-
-func decodeOrdersList(body []byte) []*Order {
 	var orders []*Order
-	json.Unmarshal(body, &orders)
-	return orders
+	err = o.RequestAndDecode(req, "orders", &orders)
+	if err != nil {
+		return nil, err
+	}
+
+	return orders, nil
+
 }

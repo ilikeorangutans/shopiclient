@@ -77,6 +77,9 @@ func WebhooksDefault(context *cli.Context) {
 }
 
 func prettyListWebhooks(hooks ...*shopify.Webhook) {
+	if len(hooks) == 0 {
+		return
+	}
 	fmt.Printf(WEBHOOK_LIST_FORMAT, "ID", "Topic", "Format", "Address")
 	fmt.Println()
 	for _, webhook := range hooks {
@@ -177,14 +180,21 @@ func CreateWebhook(context *cli.Context) {
 
 	topic := context.String("topic")
 
-	webhook, _ := shopifyClient.Webhooks().Create(topic, u, format)
+	webhook, err := shopifyClient.Webhooks().Create(topic, u, format)
+	if err != nil {
+		log.Fatal(err)
+	}
 	fmt.Println("Created new webhook:")
 	prettyListWebhooks(webhook)
 }
 
 func ListWebhooks(context *cli.Context) {
 	webhooks := shopifyClient.Webhooks()
-	hooks := webhooks.List()
+	hooks, err := webhooks.List()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	fmt.Printf("Registered webhooks: %d (you only see webhooks registered with the current credentials)\n", len(hooks))
 	prettyListWebhooks(hooks...)
 }

@@ -1,7 +1,6 @@
 package shopify
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -27,14 +26,13 @@ type metafieldsResponse struct {
 }
 
 type Metafields struct {
-	requester  Requester
-	urlBuilder URLBuilder
+	RemoteJSONResource
 }
 
 func (mf *Metafields) Create(under, namespace, key, value, valueType string) *Metafield {
 	payload := fmt.Sprintf("{\"metafield\":{\"namespace\": \"%s\", \"key\":\"%s\", \"value\":\"%s\", \"value_type\": \"%s\", \"created_at\":Mon, 13 Apr 2015 16:22:16 -0400}}", namespace, key, value, valueType)
 
-	req, err := http.NewRequest("POST", mf.urlBuilder("/admin", under, "metafields.json"), strings.NewReader(payload))
+	req, err := http.NewRequest("POST", mf.BuildURL(under, "metafields"), strings.NewReader(payload))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -43,7 +41,7 @@ func (mf *Metafields) Create(under, namespace, key, value, valueType string) *Me
 	body, _ := httputil.DumpRequest(req, true)
 	log.Printf("%s", body)
 
-	resp, err := mf.requester(req)
+	resp, err := mf.Request(req)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -53,21 +51,17 @@ func (mf *Metafields) Create(under, namespace, key, value, valueType string) *Me
 	return nil
 }
 
-func (mf *Metafields) List(under string) []*Metafield {
-	req, err := http.NewRequest("GET", mf.urlBuilder("/admin", under, "metafields.json"), nil)
-	req.Header.Set("Content-Type", "application/json")
-
+func (mf *Metafields) List(under string) ([]*Metafield, error) {
+	req, err := http.NewRequest("GET", mf.BuildURL(under, "metafields"), nil)
 	if err != nil {
-		log.Fatal(err)
-	}
-
-	resp, err := mf.requester(req)
-	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	var metafields []*Metafield
-	json.Unmarshal(resp["metafields"], &metafields)
+	err = mf.RequestAndDecode(req, "metafields", &metafields)
+	if err != nil {
+		return nil, err
+	}
 
-	return metafields
+	return metafields, nil
 }

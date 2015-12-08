@@ -1,7 +1,6 @@
 package shopify
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -18,26 +17,22 @@ type Webhook struct {
 }
 
 type Webhooks struct {
-	requester  Requester
-	urlBuilder URLBuilder
+	RemoteJSONResource
 }
 
 func (webhooks *Webhooks) Create(topic string, address *url.URL, format string) (*Webhook, error) {
 
 	payload := fmt.Sprintf("{\"webhook\":{\"topic\":\"%s\", \"address\":\"%s\", \"format\": \"%s\"}}", topic, address.String(), format)
-	req, err := http.NewRequest("POST", webhooks.urlBuilder("/admin/webhooks.json"), strings.NewReader(payload))
+	req, err := http.NewRequest("POST", webhooks.BuildURL("webhooks"), strings.NewReader(payload))
 	if err != nil {
-		log.Fatal(err)
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	resp, err := webhooks.requester(req)
-	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	var webhook *Webhook
-	json.Unmarshal(resp["webhook"], &webhook)
+	err = webhooks.RequestAndDecode(req, "webhook", &webhook)
+	if err != nil {
+		return nil, err
+	}
 
 	return webhook, nil
 }
@@ -50,12 +45,12 @@ func (webhooks *Webhooks) Delete(id int64) {
 
 	log.Printf("Deleting webhook [%d] %s %s %s", webhook.ID, webhook.Topic, webhook.Format, webhook.Address)
 
-	req, err := http.NewRequest("POST", webhooks.urlBuilder(fmt.Sprintf("/admin/webhooks/%d.json", id)), strings.NewReader("_method=delete"))
+	req, err := http.NewRequest("DELETE", webhooks.BuildURL(fmt.Sprintf("webhooks/%d", id)), nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	_, err = webhooks.requester(req)
+	_, err = webhooks.Request(req)
 
 	if err != nil {
 		log.Fatal(err)
@@ -64,34 +59,31 @@ func (webhooks *Webhooks) Delete(id int64) {
 	log.Printf("Webhook %d deleted\n", id)
 }
 
-func (ws *Webhooks) List() []*Webhook {
-	req, err := http.NewRequest("GET", ws.urlBuilder("/admin/webhooks.json"), nil)
+func (ws *Webhooks) List() ([]*Webhook, error) {
+	req, err := http.NewRequest("GET", ws.BuildURL("webhooks"), nil)
 	if err != nil {
-		log.Fatal(err)
-	}
-
-	resp, err := ws.requester(req)
-	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	var webhooks []*Webhook
-	json.Unmarshal(resp["webhooks"], &webhooks)
+	err = ws.RequestAndDecode(req, "webhooks", &webhooks)
+	if err != nil {
+		return nil, err
+	}
 
-	return webhooks
+	return webhooks, nil
 }
 
-func (webhooks *Webhooks) Get(id int64) (*Webhook, error) {
-	req, err := http.NewRequest("GET", webhooks.urlBuilder(fmt.Sprintf("/admin/webhooks/%d.json", id)), nil)
+func (ws *Webhooks) Get(id int64) (*Webhook, error) {
+	req, err := http.NewRequest("GET", ws.BuildURL(fmt.Sprintf("webhooks/%d", id)), nil)
 	if err != nil {
-		log.Fatal(err)
-	}
-	resp, err := webhooks.requester(req)
-	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	var webhook *Webhook
-	json.Unmarshal(resp["webhook"], &webhook)
+	err = ws.RequestAndDecode(req, "webhook", &webhook)
+	if err != nil {
+		return nil, err
+	}
 
 	return webhook, nil
 }

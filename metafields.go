@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/codegangsta/cli"
 	//	"github.com/ilikeorangutans/shopify"
+	"log"
 	"strings"
 )
 
@@ -45,7 +46,10 @@ func CreateMetafield(c *cli.Context) {
 
 func ListMetafields(c *cli.Context) {
 	mf := shopifyClient.Metafields()
-	fields := mf.List("products/34")
+	fields, err := mf.List("products/34")
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	format_banner := "%-11s  %-20s  %-20s  %-10s  %-20s  %-16s\n"
 	format := "%11d  %-20s  %-20s  %-10s  %-20s  %5d %-10s\n"

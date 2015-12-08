@@ -1,15 +1,12 @@
 package shopify
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 )
 
 type Transactions struct {
-	requester  Requester
-	urlBuilder URLBuilder
+	RemoteJSONResource
 }
 
 type Transaction struct {
@@ -20,22 +17,17 @@ type Transaction struct {
 	Test     bool    `json:"test"`
 }
 
-func (t *Transactions) List(order *Order) []*Transaction {
-	req, err := http.NewRequest("GET", t.urlBuilder(fmt.Sprintf("/admin/orders/%d/transactions.json", order.ID)), nil)
+func (t *Transactions) List(order *Order) ([]*Transaction, error) {
+	req, err := http.NewRequest("GET", t.BuildURL(fmt.Sprintf("orders/%d/transactions", order.ID)), nil)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	resp, err := t.requester(req)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return decodeTransactionsList(resp["transactions"])
-}
-
-func decodeTransactionsList(body []byte) []*Transaction {
 	var transactions []*Transaction
-	json.Unmarshal(body, &transactions)
-	return transactions
+	err = t.RequestAndDecode(req, "transactions", &transactions)
+	if err != nil {
+		return nil, err
+	}
+
+	return transactions, nil
 }
