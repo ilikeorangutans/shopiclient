@@ -69,12 +69,14 @@ func (a *Assets) Download(key string) (*Asset, error) {
 }
 
 func (a *Assets) Upload(asset *Asset) (*Asset, error) {
-	payload, err := json.Marshal(asset)
+	envelope := make(map[string]interface{})
+	envelope["asset"] = asset
+	payload, err := json.Marshal(envelope)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("PUT", a.BuildURL(a.themeBaseURL(), "assets"), bytes.NewReader(payload))
+	req, err := http.NewRequest("PUT", a.BuildURL(a.themeBaseURL(), "assets.json"), bytes.NewReader(payload))
 	if err != nil {
 		return nil, err
 	}

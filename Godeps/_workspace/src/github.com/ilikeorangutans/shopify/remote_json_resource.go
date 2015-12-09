@@ -23,21 +23,21 @@ type httpRemoteResource struct {
 }
 
 func (rr *httpRemoteResource) Request(req *http.Request) (io.ReadCloser, error) {
-	if rr.settings.dumpRequestURLs {
-		log.Printf("%s %s\n", req.Method, req.RequestURI)
+	if rr.settings.DumpRequestURLs {
+		log.Printf("%s %s\n", req.Method, req.URL.String())
 	}
 	rr.authenticateRequest(req)
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
 
-	if rr.settings.dumpRequests {
+	if rr.settings.DumpRequests {
 		rr.dumpRequest(req)
 	}
 	resp, err := rr.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
-	if rr.settings.dumpResponses {
+	if rr.settings.DumpResponses {
 		rr.dumpResponse(resp)
 	}
 
@@ -66,11 +66,12 @@ func (rr *httpRemoteResource) dumpResponse(resp *http.Response) {
 
 func NewRemoteResource(settings ClientSettings) RemoteResource {
 	client := &http.Client{
-		Timeout: settings.timeout,
+		Timeout: settings.Timeout,
 	}
 	return &httpRemoteResource{
 		client:              client,
 		authenticateRequest: settings.AuthenticateRequest,
+		settings:            settings,
 	}
 }
 

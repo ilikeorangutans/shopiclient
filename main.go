@@ -59,7 +59,7 @@ func SetupClient(context *cli.Context) error {
 		return nil
 	}
 	//(context.String("host"), context.String("user"), context.String("password"))
-	settings := shopify.ClientSettings{Host: context.String("host"), Username: context.String("user"), Password: context.String("password")}
+	settings := shopify.ClientSettings{Host: context.String("host"), Username: context.String("user"), Password: context.String("password"), DumpRequestURLs: context.Bool("dump-urls"), DumpRequests: context.Bool("dump-requests")}
 	shopifyClient = shopify.NewClientWithSettings(settings)
 	err := shopifyClient.Connect()
 	if err != nil {

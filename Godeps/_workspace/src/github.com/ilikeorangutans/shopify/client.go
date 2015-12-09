@@ -12,23 +12,18 @@ const DefaultTimeout = time.Duration(10 * time.Second)
 type Client struct {
 	RemoteJSONResource
 	Settings ClientSettings
-	client   *http.Client
 	Verbose  bool
 }
 
 // NewClient returns a new client with default settings and the given host, username and password.
 func NewClient(host, username, password string) *Client {
-	settings := ClientSettings{host: host, username: username, password: password, timeout: DefaultTimeout, dumpRequestURLs: true}
+	settings := ClientSettings{Host: host, Username: username, Password: password, Timeout: DefaultTimeout, DumpRequestURLs: true, DumpRequests: true, DumpResponses: true}
 	return NewClientWithSettings(settings)
 }
 
 // NewClientWithSettings creates a new client with the given settings.
 func NewClientWithSettings(settings ClientSettings) *Client {
-	client := &http.Client{
-		Timeout: settings.timeout,
-	}
 	return &Client{
-		client:   client,
 		Settings: settings,
 		RemoteJSONResource: &ShopifyRemoteJSONResource{
 			URLBuilder:     &ShopifyAdminURLBuilder{baseURL: settings.ShopURL()},
