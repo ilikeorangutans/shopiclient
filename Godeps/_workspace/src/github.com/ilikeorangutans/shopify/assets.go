@@ -1,9 +1,14 @@
 package shopify
 
 import (
+	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
+	"net/url"
 )
 
 type Assets struct {
@@ -63,6 +68,26 @@ func (a *Assets) Download(key string) (*Asset, error) {
 	return asset, nil
 }
 
+func (a *Assets) Upload(asset *Asset) (*Asset, error) {
+	payload, err := json.Marshal(asset)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PUT", a.BuildURL(a.themeBaseURL(), "assets"), bytes.NewReader(payload))
+	if err != nil {
+		return nil, err
+	}
+
+	var response *Asset
+	err = a.RequestAndDecode(req, "asset", &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
 func (a *Assets) themeBaseURL() string {
 	return fmt.Sprintf("themes/%d", a.Theme.ID)
 }
@@ -76,19 +101,20 @@ type Asset struct {
 	Timestamps
 
 	Key         string `json:"key"`
-	ContentType string `json:"content_type"`
-	PublicURL   string `json:"public_url"`
-	Size        int    `json:"size"`
-	ThemeID     int64  `json:"theme_id"`
-	Value       string `json:"value"`
+	ContentType string `json:"content_type,omitempty"`
+	PublicURL   string `json:"public_url,omitempty"`
+	Size        int    `json:"size,omitempty"`
+	ThemeID     int64  `json:"theme_id,omitempty"`
+	Value       string `json:"value,omitempty"`
 	// Attachment holds the binary attachment of this asset, if available. Note that you should check the
 	// DecodingComplete channel on this asset to ensure decoding is complete.
 	Attachment []byte `json:"-"`
 	// EncodedAttachment holds a base64 encoded representation of the attachment.
-	EncodedAttachment string `json:"attachment"`
+	EncodedAttachment string `json:"attachment,omitempty"`
 	// DecodingComplete is a channel that blocks until decoding of this asset's attachment is complete.
 	DecodingComplete chan struct{} `json:"-"`
 	EncodingComplete chan struct{} `json:"-"`
+	Src              string        `json:"src,omitempty"`
 }
 
 func (a *Asset) HasAttachment() bool {
@@ -113,4 +139,37 @@ func (a *Asset) decodeAttachment() error {
 	}
 	a.Attachment = b
 	return nil
+}
+
+func (a *Asset) encodeAttachment() {
+	encodedAttachment := base64.StdEncoding.EncodeToString(a.Attachment)
+	a.EncodedAttachment = encodedAttachment
+}
+
+func NewAssetWithAttachment(key string, reader io.Reader) (*Asset, error) {
+	attachment, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return nil, err
+	}
+	return &Asset{
+		Key:        key,
+		Attachment: attachment,
+	}, nil
+}
+
+func NewAssetWithValue(key, value string) (*Asset, error) {
+	return &Asset{
+		Key:   key,
+		Value: value}, nil
+}
+
+func NewAssetWithURL(key, src string) (*Asset, error) {
+	srcURL, err := url.Parse(src)
+	if err != nil {
+		return nil, err
+	}
+	return &Asset{
+		Key: key,
+		Src: srcURL.String(),
+	}, nil
 }

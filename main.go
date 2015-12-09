@@ -15,8 +15,16 @@ func main() {
 	app.Before = SetupClient
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{
-			Name:  "verbose",
-			Usage: "Show HTTP responses",
+			Name:  "dump-urls",
+			Usage: "Show URLs being requested",
+		},
+		cli.BoolFlag{
+			Name:  "dump-requests",
+			Usage: "Dump full HTTP requests as they are issued",
+		},
+		cli.BoolFlag{
+			Name:  "dump-responses",
+			Usage: "Dump full HTTP responses as they are received",
 		},
 		cli.StringFlag{
 			Name:   "user",
@@ -47,7 +55,12 @@ func main() {
 var shopifyClient *shopify.Client
 
 func SetupClient(context *cli.Context) error {
-	shopifyClient = shopify.NewClient(context.String("host"), context.String("user"), context.String("password"))
+	if context.Command.Name == "help" {
+		return nil
+	}
+	//(context.String("host"), context.String("user"), context.String("password"))
+	settings := shopify.ClientSettings{Host: context.String("host"), Username: context.String("user"), Password: context.String("password")}
+	shopifyClient = shopify.NewClientWithSettings(settings)
 	err := shopifyClient.Connect()
 	if err != nil {
 		log.Fatal(err)

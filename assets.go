@@ -15,6 +15,7 @@ var themeID int
 func AssetCommands() cli.Command {
 	return cli.Command{
 		Name:   "assets",
+		Usage:  "Retrieve and modify assets",
 		Before: loadThemeForAssets,
 		Flags: []cli.Flag{
 			cli.IntFlag{
@@ -28,6 +29,21 @@ func AssetCommands() cli.Command {
 				Name:   "list",
 				Usage:  "Lists the assets in a given theme.",
 				Action: ListAssets,
+			},
+			cli.Command{
+				Name:   "upload",
+				Usage:  "Uploads an asset",
+				Action: UploadAsset,
+				Flags: []cli.Flag{
+					cli.StringFlag{
+						Name:  "key",
+						Usage: "Key of the asset to upload/modify",
+					},
+					cli.StringFlag{
+						Name:  "value",
+						Usage: "Value for the asset",
+					},
+				},
 			},
 		},
 	}
@@ -64,4 +80,24 @@ func ListAssets(context *cli.Context) {
 	}
 
 	writer.Flush()
+}
+
+func UploadAsset(context *cli.Context) {
+	key := context.String("key")
+	if len(key) == 0 {
+		log.Fatal("No key given")
+	}
+
+	var asset *shopify.Asset
+	value := context.String("value")
+	if len(value) > 0 {
+		asset, _ = shopify.NewAssetWithValue(key, value)
+	}
+
+	result, err := shopifyClient.Assets(theme).Upload(asset)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println(result)
 }
